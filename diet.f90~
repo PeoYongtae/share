@@ -1,0 +1,46 @@
+module subprog
+  implicit none
+  integer,parameter :: kd=8
+contains
+  subroutine make_seed
+    integer :: i
+    integer :: seedsize
+    integer,allocatable :: seed(:)
+    call random_seed(size=seedsize)
+    allocate(seed(seedsize))
+    do i = 1, seedsize
+       call system_clock(count=seed(i))
+    end do
+    call random_seed(put=seed(:))
+  end subroutine make_seed
+end module subprog
+
+program main
+  use subprog
+  implicit none
+  integer,parameter  :: n=1000000,m=1
+  real(kd),parameter :: dw=0.1_kd
+  integer  :: i,j
+  real(kd) :: weight,sum_w
+  real(kd) :: x
+  sum_w  = 0.0_kd
+  call make_seed
+  open(10,file='data.dat')
+  open(11,file='timehist.dat')
+  
+  do j = 1, m
+     weight = 80.0_kd
+     do i = 1, n
+        call random_number(x)
+        if (x > 0.5_kd) then
+           weight = weight+dw
+        else
+           weight = weight-dw
+        end if
+        write(11,*) weight
+     end do
+     sum_w = sum_w+weight
+     write(10,*) weight
+  end do
+  print *, real(sum_w/m,kd)
+end program main
